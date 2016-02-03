@@ -8,11 +8,11 @@
 #define LED_NUMBER 8
 #define LED_PIN 3
 #define SLEEP_TIME 75
-#define BUTTON_PIN 2
+#define BUTTON_PIN 4
 #define COLORS 7
 #define LONG_PUSH_THRESHOLD 10
 #define MAX_CYCLE 256
-#define MODES 7
+#define MODES 8
 #define EEPROM_MODE_ADDRESS 0
 #define EEPROM_COLOR_ADDRESS 1
 
@@ -94,6 +94,18 @@ void modeBoldWander(byte currentCycle) {
 
   LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor);
   LED.set_crgb_at((currentCycle + 1) % LED_NUMBER, currentColor); 
+}
+
+void modeBolderWander(byte currentCycle) {
+
+  for (i = 0; i < LED_NUMBER; i++) {
+    LED.set_crgb_at(i, off); 
+  }
+
+  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor);
+  LED.set_crgb_at((currentCycle + 1) % LED_NUMBER, currentColor); 
+  LED.set_crgb_at((currentCycle + 2) % LED_NUMBER, currentColor); 
+  LED.set_crgb_at((currentCycle + 3) % LED_NUMBER, currentColor); 
 }
 
 void modeDoubleWander(byte currentCycle) {
@@ -196,6 +208,11 @@ void loop() {
 
     case 6:
       modeFlash(cycle);
+      break;
+
+    case 7:
+      modeBolderWander(cycle);
+      break;
     
   }
 
