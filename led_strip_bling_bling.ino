@@ -6,9 +6,9 @@
 #define adc_enable()  (ADCSRA |=  (1<<ADEN)) // re-enable ADC
 
 #define LED_NUMBER 8
-#define LED_PIN 3
+#define LED_PIN 4
 #define SLEEP_TIME 75
-#define BUTTON_PIN 4
+#define BUTTON_PIN 3
 #define COLORS 7
 #define LONG_PUSH_THRESHOLD 10
 #define MAX_CYCLE 256
