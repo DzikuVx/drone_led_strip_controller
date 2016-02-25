@@ -1,10 +1,12 @@
 #include <avr/sleep.h>
 #include <WS2812.h>
 #include <EEPROM.h>
+#include <PinChangeInterrupt.h>
 
 #define adc_disable() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
 #define adc_enable()  (ADCSRA |=  (1<<ADEN)) // re-enable ADC
 
+#define RC_PIN 2
 #define LED_NUMBER 8
 #define LED_PIN 4
 #define SLEEP_TIME 75
@@ -15,6 +17,7 @@
 #define MODES 8
 #define EEPROM_MODE_ADDRESS 0
 #define EEPROM_COLOR_ADDRESS 1
+#define LPF_FACTOR 0.8
 
 const byte colors[COLORS][3] = {
     {255, 0, 0},
@@ -33,9 +36,28 @@ byte pushStartCycle;
 byte i;
 byte colorIndex = 0;
 byte cycle = 0;
+byte previousRcState = LOW;
+
 
 cRGB currentColor;
 cRGB off;
+
+volatile unsigned long risingStart = 0;
+volatile unsigned int channelLength = 0;
+
+int smooth(int data, float filterVal, float smoothedVal){
+
+  if (filterVal > 1){ // check to make sure params are within range
+    filterVal = .99;
+  }
+  else if (filterVal <= 0){
+    filterVal = 0;
+  }
+
+  smoothedVal = (data * (1 - filterVal)) + (smoothedVal  *  filterVal);
+
+  return (int)smoothedVal;
+}
 
 void setColor() {
   currentColor.r = colors[colorIndex][0];
@@ -62,6 +84,19 @@ void setup() {
   }
 
   setColor();
+
+  attachPinChangeInterrupt(RC_PIN, onChange, CHANGE);
+}
+
+void onChange(void) {
+  uint8_t trigger = getPinChangeInterruptTrigger(RC_PIN);
+
+  if(trigger == RISING) {
+    risingStart = micros();
+  } else if(trigger == FALLING) {
+    unsigned int val = micros() - risingStart;
+    channelLength = smooth(val, LPF_FACTOR, channelLength);
+  }
 }
 
 void modeOff(byte currentCycle) {
@@ -150,11 +185,18 @@ void loop() {
 
   byte pin = digitalRead(BUTTON_PIN);
 
+  byte rcState = LOW;
+  if (channelLength > 1750 && channelLength < 2200) {
+    rcState = HIGH;
+  }
+
   if (pin == LOW and previousPin == HIGH) {
     pushStartCycle = cycle;
   }
+
   
-  if (pin == HIGH and previousPin == LOW) {
+  
+  if ((pin == HIGH and previousPin == LOW)) {
 
     if (abs(cycle - pushStartCycle) > LONG_PUSH_THRESHOLD) {
       /*
@@ -178,7 +220,18 @@ void loop() {
     }
   }
 
+  if (rcState == LOW and previousRcState == HIGH) {
+    mode++;
+
+    if (mode == MODES) {
+      mode = 0;
+    }
+
+    EEPROM.write(EEPROM_MODE_ADDRESS, mode);
+  }
+
   previousPin = pin;
+  previousRcState = rcState;
 
   switch (mode) {
 
