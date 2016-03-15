@@ -8,6 +8,7 @@
 
 #define RC_PIN 2
 #define LED_NUMBER 8
+#define LED_MULTIPLIER 2
 #define LED_PIN 4
 #define SLEEP_TIME 75
 #define BUTTON_PIN 3
@@ -29,18 +30,18 @@ const byte colors[COLORS][3] = {
     {255, 255, 255}
   };
 
-WS2812 LED(LED_NUMBER); // 1 LED
+WS2812 LED(LED_NUMBER * LED_MULTIPLIER);
 
 byte mode = 0;
 byte pushStartCycle;
 byte i;
 byte colorIndex = 0;
 byte cycle = 0;
-byte previousRcState = LOW;
-
 
 cRGB currentColor;
 cRGB off;
+
+cRGB output[LED_NUMBER] = {};
 
 volatile unsigned long risingStart = 0;
 volatile unsigned int channelLength = 0;
@@ -101,67 +102,67 @@ void onChange(void) {
 
 void modeOff(byte currentCycle) {
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); // Set value at LED found at index 0
+    output[i] = off;
   }
 }
 
 void modeOn(byte currentCycle) {
   
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, currentColor); // Set value at LED found at index 0
+    output[i] = currentColor;
   }
 }
 
 void modeSingleWander(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); 
+    output[i] = off; 
   }
 
-  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor); 
+  output[currentCycle % LED_NUMBER] = currentColor; 
 }
 
 void modeBoldWander(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); 
+    output[i] = off; 
   }
 
-  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor);
-  LED.set_crgb_at((currentCycle + 1) % LED_NUMBER, currentColor); 
+  output[currentCycle % LED_NUMBER] = currentColor;
+  output[(currentCycle + 1) % LED_NUMBER] = currentColor; 
 }
 
 void modeBolderWander(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); 
+    output[i] = off; 
   }
 
-  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor);
-  LED.set_crgb_at((currentCycle + 1) % LED_NUMBER, currentColor); 
-  LED.set_crgb_at((currentCycle + 2) % LED_NUMBER, currentColor); 
-  LED.set_crgb_at((currentCycle + 3) % LED_NUMBER, currentColor); 
+  output[currentCycle % LED_NUMBER] = currentColor;
+  output[(currentCycle + 1) % LED_NUMBER] = currentColor; 
+  output[(currentCycle + 2) % LED_NUMBER] = currentColor; 
+  output[(currentCycle + 3) % LED_NUMBER] = currentColor; 
 }
 
 void modeDoubleWander(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); 
+    output[i] = off; 
   }
 
-  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor); 
-  LED.set_crgb_at((MAX_CYCLE - currentCycle) % LED_NUMBER, currentColor); 
+  output[currentCycle % LED_NUMBER] = currentColor; 
+  output[(MAX_CYCLE - currentCycle) % LED_NUMBER] = currentColor; 
 
 }
 
 void modeChase(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, off); 
+    output[i] = off; 
   }
 
-  LED.set_crgb_at(currentCycle % LED_NUMBER, currentColor); 
-  LED.set_crgb_at((currentCycle + (LED_NUMBER / 2)) % LED_NUMBER, currentColor); 
+  output[currentCycle % LED_NUMBER] = currentColor; 
+  output[(currentCycle + (LED_NUMBER / 2)) % LED_NUMBER] = currentColor; 
 
 }
 
@@ -174,29 +175,31 @@ void modeFlash(byte currentCycle) {
   }
 
   for (i = 0; i < LED_NUMBER; i++) {
-    LED.set_crgb_at(i, state); 
+    output[i] = state; 
   }
 
 }
 
 byte previousPin = LOW;
 
+byte controllState = LOW;
+byte previousState = LOW;
+
 void loop() {
 
   byte pin = digitalRead(BUTTON_PIN);
 
-  byte rcState = LOW;
-  if (channelLength > 1750 && channelLength < 2200) {
-    rcState = HIGH;
+  controllState = LOW;
+
+  if (channelLength > 1750 && channelLength < 2200 || digitalRead(BUTTON_PIN) == LOW) {
+    controllState = HIGH;
   }
 
-  if (pin == LOW and previousPin == HIGH) {
+  if (controllState == HIGH and previousState == LOW) {
     pushStartCycle = cycle;
   }
-
   
-  
-  if ((pin == HIGH and previousPin == LOW)) {
+  if (controllState == LOW and previousState == HIGH) {
 
     if (abs(cycle - pushStartCycle) > LONG_PUSH_THRESHOLD) {
       /*
@@ -220,18 +223,7 @@ void loop() {
     }
   }
 
-  if (rcState == LOW and previousRcState == HIGH) {
-    mode++;
-
-    if (mode == MODES) {
-      mode = 0;
-    }
-
-    EEPROM.write(EEPROM_MODE_ADDRESS, mode);
-  }
-
-  previousPin = pin;
-  previousRcState = rcState;
+  previousState = controllState;
 
   switch (mode) {
 
@@ -267,6 +259,12 @@ void loop() {
       modeBolderWander(cycle);
       break;
     
+  }
+
+  for (byte strip = 0; strip < LED_MULTIPLIER; strip++) {
+    for (byte i = 0; i < LED_NUMBER; i++) {
+      LED.set_crgb_at(i + (strip * LED_NUMBER), output[i]); 
+    }
   }
 
   LED.sync();
