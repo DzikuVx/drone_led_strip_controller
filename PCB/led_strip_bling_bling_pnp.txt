@@ -4,7 +4,7 @@
 *eMail=
 *
 *Project=led_strip_bling_bling
-*Date=19:27:36
+*Date=18:46:57
 *CreatedBy=Fritzing 0.9.2b.11.19.8d2d5970658f0bed09c661c9ea9a515b5f40f44c
 *
 *
@@ -13,10 +13,12 @@
 *Rotation in degree (0-360, math. pos.)
 *
 *No;Value;Package;X;Y;Rotation;Side;Name
-1;;dip;5.69478;-8.25497;90;Bottom;U1
-2;;;7.21878;-1.50985;0;Bottom;TXT1
-3;;THT;9.50478;-17.145;0;Bottom;J2
-4;;;11.8472;-16.7499;0;Bottom;TXT3
-5;;;11.7343;-19.2899;0;Bottom;TXT2
-6;;[THT];4.13804;-18.1656;90;Bottom;S1
-7;;THT;3.15478;-1.90497;90;Bottom;J1
+1;;;11.9113;-19.3625;0;Bottom;TXT2
+2;;;11.8658;-14.2561;0;Bottom;TXT5
+3;;;9.47644;-1.33277;0;Bottom;TXT1
+4;;;10.3521;-21.6604;0;Bottom;TXT6
+5;;dip;5.72959;-8.14982;90;Bottom;U1
+6;;;11.882;-16.6447;0;Bottom;TXT3
+7;;THT;4.45959;-1.79982;90;Bottom;J3
+8;;[THT];4.17285;-18.0605;90;Bottom;S1
+9;;THT;9.53959;-17.0398;0;Bottom;J2
