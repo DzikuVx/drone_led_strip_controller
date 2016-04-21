@@ -8,14 +8,14 @@
 
 #define RC_PIN 2
 #define LED_NUMBER 8
-#define LED_MULTIPLIER 2
+#define LED_MULTIPLIER 4
 #define LED_PIN 4
-#define SLEEP_TIME 75
+#define SLEEP_TIME 30
 #define BUTTON_PIN 3
 #define COLORS 7
-#define LONG_PUSH_THRESHOLD 10
+#define LONG_PUSH_THRESHOLD 20
 #define MAX_CYCLE 256
-#define MODES 8
+#define MODES 9
 #define EEPROM_MODE_ADDRESS 0
 #define EEPROM_COLOR_ADDRESS 1
 #define LPF_FACTOR 0.8
@@ -40,6 +40,7 @@ byte cycle = 0;
 
 cRGB currentColor;
 cRGB off;
+cRGB background;
 
 cRGB output[LED_NUMBER] = {};
 
@@ -64,6 +65,10 @@ void setColor() {
   currentColor.r = colors[colorIndex][0];
   currentColor.g = colors[colorIndex][1];
   currentColor.b = colors[colorIndex][2];
+
+  background.r = colors[colorIndex][0] / 5;
+  background.g = colors[colorIndex][1] / 5;
+  background.b = colors[colorIndex][2] / 5;
 }
 
 void setup() {
@@ -113,19 +118,59 @@ void modeOn(byte currentCycle) {
   }
 }
 
+byte getDivider(byte denom, byte cycle) {
+  return cycle / denom;
+}
+
 void modeSingleWander(byte currentCycle) {
 
+  currentCycle = getDivider(2, currentCycle);
+
   for (i = 0; i < LED_NUMBER; i++) {
-    output[i] = off; 
+    output[i] = background; 
   }
 
   output[currentCycle % LED_NUMBER] = currentColor; 
 }
 
-void modeBoldWander(byte currentCycle) {
+void setOutput(byte led, cRGB color) {
+
+//  if (led <= LED_NUMBER) {
+    output[led] = color; 
+//  }
+  
+}
+
+void modeRapid(byte currentCycle) {
 
   for (i = 0; i < LED_NUMBER; i++) {
-    output[i] = off; 
+    output[i] = background; 
+  }
+
+  if (currentCycle == LED_NUMBER << 2) {
+    cycle = 0;
+    currentCycle = 0;
+  }
+
+  if (currentCycle < LED_NUMBER) {
+    setOutput(currentCycle % LED_NUMBER, currentColor);
+
+    if (currentCycle + 1 < LED_NUMBER) {
+      setOutput((currentCycle + 1) % LED_NUMBER, currentColor);
+    }
+    if (currentCycle + 2 < LED_NUMBER) {
+      setOutput((currentCycle + 2) % LED_NUMBER, currentColor);
+    }
+  } 
+  
+}
+
+void modeBoldWander(byte currentCycle) {
+
+  currentCycle = getDivider(2, currentCycle);
+
+  for (i = 0; i < LED_NUMBER; i++) {
+    output[i] = background; 
   }
 
   output[currentCycle % LED_NUMBER] = currentColor;
@@ -133,6 +178,8 @@ void modeBoldWander(byte currentCycle) {
 }
 
 void modeBolderWander(byte currentCycle) {
+
+  currentCycle = getDivider(2, currentCycle);
 
   for (i = 0; i < LED_NUMBER; i++) {
     output[i] = off; 
@@ -146,6 +193,8 @@ void modeBolderWander(byte currentCycle) {
 
 void modeDoubleWander(byte currentCycle) {
 
+  currentCycle = getDivider(2, currentCycle);
+
   for (i = 0; i < LED_NUMBER; i++) {
     output[i] = off; 
   }
@@ -157,6 +206,8 @@ void modeDoubleWander(byte currentCycle) {
 
 void modeChase(byte currentCycle) {
 
+  currentCycle = getDivider(2, currentCycle);
+
   for (i = 0; i < LED_NUMBER; i++) {
     output[i] = off; 
   }
@@ -167,6 +218,8 @@ void modeChase(byte currentCycle) {
 }
 
 void modeFlash(byte currentCycle) {
+
+  currentCycle = getDivider(2, currentCycle);
 
   cRGB state = off;
 
@@ -257,6 +310,10 @@ void loop() {
 
     case 7:
       modeBolderWander(cycle);
+      break;
+
+    case 8:
+      modeRapid(cycle);
       break;
     
   }
