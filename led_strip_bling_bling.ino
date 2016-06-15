@@ -265,6 +265,10 @@ void loop() {
       }
       EEPROM.write(EEPROM_COLOR_ADDRESS, colorIndex);
       setColor();
+
+      cycle = 0;
+      pushStartCycle = 0;
+      
     } else if (abs(cycle - pushStartCycle) > 1) {
       mode++;
 
@@ -272,6 +276,9 @@ void loop() {
         mode = 0;
       }
 
+      cycle = 0;
+      pushStartCycle = 0;
+      
       EEPROM.write(EEPROM_MODE_ADDRESS, mode);
     }
   }
