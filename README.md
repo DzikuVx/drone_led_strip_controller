@@ -11,6 +11,8 @@ Features:
 * Supports 8 RGB LED strips based on WS2812B
 * 1 button operated. Single button allows to change pattern and color. Short press changes patters, long press changes color
 
+![Diagram](schema.png)
+
 How it works? One picture can be worth thousand words, so here is a small video
 
 [![Dronsie Strip](http://img.youtube.com/vi/arccMxGvTm0/0.jpg)](http://www.youtube.com/watch?v=arccMxGvTm0 "Dronsie Strip")
