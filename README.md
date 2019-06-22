@@ -11,6 +11,11 @@ Features:
 * Supports 8 RGB LED strips based on WS2812B
 * 1 button operated. Single button allows to change pattern and color. Short press changes patters, long press changes color
 
+## BOM
+* [ATtiny85](http://bit.ly/2XqkfwB) ~$1.5
+* [Tactile button](http://bit.ly/2Kzawy3) ~$1.5 for 100pcs
+* PCB depends on where you order it. Design is already on [OSHPark](https://oshpark.com/shared_projects/qaobZKzz)
+
 ![Diagram](schema.png)
 
 How it works? One picture can be worth thousand words, so here is a small video
